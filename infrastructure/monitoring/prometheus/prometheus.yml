@@ -1,0 +1,74 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'robinhood-strategies-monitor'
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Auth Service
+  - job_name: 'auth-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['auth-service:8081']
+        labels:
+          service: 'auth-service'
+          environment: 'docker'
+
+  # Order Execution Service
+  - job_name: 'order-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['order-service:8082']
+        labels:
+          service: 'order-service'
+          environment: 'docker'
+
+  # Strategy Service
+  - job_name: 'strategy-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['strategy-service:8083']
+        labels:
+          service: 'strategy-service'
+          environment: 'docker'
+
+  # Portfolio Service
+  - job_name: 'portfolio-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['portfolio-service:8084']
+        labels:
+          service: 'portfolio-service'
+          environment: 'docker'
+
+  # API Gateway
+  - job_name: 'api-gateway'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['api-gateway:8080']
+        labels:
+          service: 'api-gateway'
+          environment: 'docker'
+
+  # PostgreSQL Exporter (optional - can be added later)
+  # - job_name: 'postgres'
+  #   static_configs:
+  #     - targets: ['postgres-exporter:9187']
+
+  # Redis Exporter (optional - can be added later)
+  # - job_name: 'redis'
+  #   static_configs:
+  #     - targets: ['redis-exporter:9121']
+
+  # RabbitMQ
+  - job_name: 'rabbitmq'
+    static_configs:
+      - targets: ['rabbitmq:15692']
+        labels:
+          service: 'rabbitmq'
+          environment: 'docker'
