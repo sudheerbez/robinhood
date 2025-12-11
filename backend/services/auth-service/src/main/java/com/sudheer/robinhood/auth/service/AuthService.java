@@ -11,6 +11,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -78,7 +80,7 @@ public class AuthService {
 
         @Transactional(readOnly = true)
         public AuthResponse getUserById(Long userId) {
-                User user = userRepository.findById(userId)
+                User user = userRepository.findById(Objects.requireNonNull(userId))
                                 .orElseThrow(() -> new RuntimeException("User not found"));
 
                 return AuthResponse.builder()
