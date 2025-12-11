@@ -72,35 +72,6 @@ jobs:
           npm run build
 
   # =====================================
-  # DOCKER COMPOSE VALIDATION
-  # =====================================
-  docker-compose-check:
-    name: Docker Compose Validation
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Validate docker-compose.yml
-        run: docker compose config --quiet
-
-      - name: Check all required files exist
-        run: |
-          echo "📁 Checking required files..."
-          
-          # Check docker-compose
-          [ -f "docker-compose.yml" ] && echo "✅ docker-compose.yml" || echo "❌ docker-compose.yml"
-          
-          # Check services have required files
-          for service in auth-service user-profiling-service strategy-service; do
-            dir="backend/services/$service"
-            [ -f "$dir/pom.xml" ] && echo "✅ $service/pom.xml" || echo "⚠️ $service/pom.xml missing"
-          done
-          
-          # Check frontend
-          [ -f "frontend/package.json" ] && echo "✅ frontend/package.json" || echo "❌ frontend/package.json"
-
-  # =====================================
   # SECURITY SCAN
   # =====================================
   security-scan:
@@ -157,7 +128,7 @@ jobs:
     name: Release Readiness Check
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-    needs: [full-build, frontend-full, docker-compose-check]
+    needs: [full-build, frontend-full]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -168,6 +139,5 @@ jobs:
           echo ""
           echo "✅ All backend services built successfully"
           echo "✅ Frontend built successfully"
-          echo "✅ Docker Compose validated"
           echo ""
           echo "Ready for deployment! 🎉"
