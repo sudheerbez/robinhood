@@ -12,22 +12,18 @@ echo "========================================="
 echo "📦 Updating system packages..."
 if command -v dnf &> /dev/null; then
     sudo dnf update -y
-    sudo dnf install -y git docker java-21-amazon-corretto maven
+    # Install Java, Maven, Git, Redis, and PostgreSQL Client
+    sudo dnf install -y git java-21-amazon-corretto maven redis6 postgresql15
 elif command -v apt-get &> /dev/null; then
     sudo apt-get update -y
-    sudo apt-get install -y git docker.io openjdk-21-jdk maven
+    sudo apt-get install -y git openjdk-21-jdk maven redis-server postgresql-client
 fi
 
-# Start Docker
-echo "🐳 Starting Docker..."
-sudo systemctl start docker
-sudo systemctl enable docker
-sudo usermod -aG docker $USER
-
-# Install Docker Compose
-echo "🐳 Installing Docker Compose..."
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
+# Start Redis
+echo "🚀 Starting Redis..."
+if command -v systemctl &> /dev/null; then
+    sudo systemctl enable --now redis6 2>/dev/null || sudo systemctl enable --now redis-server
+fi
 
 # Clone repository
 echo "📥 Cloning repository..."
@@ -42,7 +38,7 @@ cat > /home/ec2-user/tradewise/.env << 'EOF'
 # Database Configuration (Replace with your RDS endpoint)
 DB_HOST=your-rds-endpoint.region.rds.amazonaws.com
 DB_PORT=5432
-DB_NAME=tradewise
+DB_NAME=robinhood
 DB_USER=postgres
 DB_PASSWORD=your-secure-password
 
