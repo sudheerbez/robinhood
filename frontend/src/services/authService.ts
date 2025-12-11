@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8081/api/v1';
+const API_BASE_URL = 'http://100.48.63.47:8081/api/v1';
 
 export interface RegisterRequest {
     username: string;
