@@ -62,12 +62,14 @@ echo "🔨 Building Auth Service..."
 cd backend/services/auth-service
 mvn package -DskipTests -q
 
-echo "🚀 Starting Auth Service..."
+echo "🚀 Starting Auth Service with Auto-Schema Creation..."
 nohup java -jar \
     -Dspring.datasource.url=jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME} \
     -Dspring.datasource.username=${DB_USER} \
     -Dspring.datasource.password=${DB_PASSWORD} \
     -Dspring.redis.host=${REDIS_HOST} \
+    -Dspring.jpa.hibernate.ddl-auto=update \
+    -Dspring.jpa.properties.hibernate.hbm2ddl.create_namespaces=true \
     target/*.jar > /tmp/auth-service.log 2>&1 &
 cd ../../..
 
@@ -76,13 +78,15 @@ echo "🔨 Building User Profiling Service..."
 cd backend/services/user-profiling-service
 mvn package -DskipTests -q
 
-echo "🚀 Starting User Profiling Service..."
+echo "🚀 Starting User Profiling Service with Auto-Schema Creation..."
 nohup java -jar \
     -Dserver.port=8082 \
     -Dspring.datasource.url=jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME} \
     -Dspring.datasource.username=${DB_USER} \
     -Dspring.datasource.password=${DB_PASSWORD} \
     -Dspring.redis.host=${REDIS_HOST} \
+    -Dspring.jpa.hibernate.ddl-auto=update \
+    -Dspring.jpa.properties.hibernate.hbm2ddl.create_namespaces=true \
     target/*.jar > /tmp/profiling-service.log 2>&1 &
 cd ../../..
 
