@@ -23,14 +23,33 @@ fi
 
 echo "🗄️ Database: $DB_HOST:$DB_PORT/$DB_NAME"
 
-# Ensure Docker containers are running
-echo "🐳 Starting Docker containers..."
-docker start postgres 2>/dev/null || docker run -d --name postgres -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=robinhood -p 5432:5432 postgres:15-alpine
-docker start redis 2>/dev/null || docker run -d --name redis -p 6379:6379 redis:7-alpine
+# Check if using RDS or Local Docker
+if [[ "$DB_HOST" == *"rds.amazonaws.com"* ]]; then
+    echo "☁️ Using RDS Database (skipping local Docker)..."
+    # Optional: Stop local Docker containers to save resources
+    docker stop postgres redis 2>/dev/null || true
+else
+    # Ensure Docker containers are running for local setup
+    echo "🐳 Starting Docker containers..."
+    docker start postgres 2>/dev/null || docker run -d --name postgres -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=robinhood -p 5432:5432 postgres:15-alpine
+fi
 
-# Wait for PostgreSQL to be ready
-echo "⏳ Waiting for PostgreSQL..."
-sleep 5
+# Ensure Redis is running (native or docker)
+if [[ "$REDIS_HOST" == "localhost" ]]; then
+    # Check if native redis is running
+    if systemctl is-active --quiet redis6; then
+        echo "✅ Native Redis is running."
+    elif systemctl is-active --quiet redis; then
+        echo "✅ Native Redis is running."
+    elif [[ "$DB_HOST" != *"rds.amazonaws.com"* ]]; then
+        # Fallback to Docker only if not using RDS (assuming full local setup) or if explicitly desired
+        echo "🐳 Starting Docker Redis..."
+        docker start redis 2>/dev/null || docker run -d --name redis -p 6379:6379 redis:7-alpine
+    else
+        echo "⚠️ Warning: Redis service not found running natively. Ensure it is installed."
+    fi
+fi
+
 
 # Kill existing Java processes
 echo "🔄 Stopping existing services..."
