@@ -130,20 +130,51 @@ export CLOUDFRONT_DISTRIBUTION_ID="your-distribution-id"
 
 ---
 
-## Step 7: Configure GitHub Secrets
+## Step 7: Configure GitHub Secrets (Auto-Deploy)
+
+> **Note**: Once configured, pushing to `main` will automatically deploy to AWS!
 
 Go to your GitHub repo → **Settings** → **Secrets and variables** → **Actions**
 
 Add these secrets:
 
-| Secret Name | Value |
-|-------------|-------|
-| `AWS_ACCESS_KEY_ID` | Your AWS access key |
-| `AWS_SECRET_ACCESS_KEY` | Your AWS secret key |
-| `EC2_HOST` | Your EC2 public IP |
-| `EC2_SSH_KEY` | Your EC2 private key (entire .pem content) |
-| `S3_BUCKET` | Your S3 bucket name |
-| `CLOUDFRONT_DISTRIBUTION_ID` | Your CloudFront distribution ID |
+| Secret Name | Value | Where to get it |
+|-------------|-------|-----------------|
+| `AWS_ACCESS_KEY_ID` | Your AWS access key | IAM → Users → Security credentials |
+| `AWS_SECRET_ACCESS_KEY` | Your AWS secret key | IAM → Users → Security credentials |
+| `EC2_HOST` | Your EC2 public IP | EC2 Dashboard |
+| `EC2_SSH_KEY` | Contents of your .pem file | The key you downloaded when creating EC2 |
+| `S3_BUCKET` | Your S3 bucket name | S3 Dashboard |
+| `CLOUDFRONT_DISTRIBUTION_ID` | Your CloudFront ID (optional) | CloudFront Dashboard |
+
+### How Auto-Deploy Works
+
+```
+Push to main → GitHub Actions → Build Frontend → Upload to S3 → Site is live!
+```
+
+The frontend build (`npm run build`) automatically generates:
+- `dist/index.html` - Main entry point
+- `dist/assets/` - JavaScript and CSS bundles
+
+---
+
+## Step 8: Manual Deployment (Alternative)
+
+If you want to deploy manually without GitHub Actions:
+
+```bash
+# 1. Build frontend
+cd frontend
+npm run build
+
+# 2. Upload to S3 (replace YOUR-BUCKET with your bucket name)
+aws s3 sync dist/ s3://YOUR-BUCKET/ --delete
+
+# 3. Verify
+aws s3 ls s3://YOUR-BUCKET/
+# Should show: index.html, assets/, vite.svg
+```
 
 ---
 
