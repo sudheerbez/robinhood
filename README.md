@@ -1,82 +1,117 @@
 # Robinhood Strategies Platform Clone
 
-A comprehensive full-stack investment platform clone built with microservices architecture, demonstrating modern software engineering practices.
+A comprehensive full-stack investment platform clone built with microservices architecture, deploying to AWS Free Tier.
 
 ## 🎯 Project Overview
 
 This project replicates the core functionality of Robinhood's automated investment strategies platform, featuring:
 
-- **Microservices Architecture**: 4 Java/Spring Boot services + Node.js API Gateway
+- **Microservices Architecture**: Java/Spring Boot services
 - **Event-Driven Design**: RabbitMQ for asynchronous communication
-- **Modern Frontend**: React + TypeScript + Material-UI
+- **Modern Frontend**: React + TypeScript + Material-UI + Vite
 - **Security**: OAuth 2.0 + JWT + RBAC
-- **Monitoring**: Prometheus + Grafana dashboards
-- **100% Local**: No cloud costs, runs entirely on Docker Compose
+- **Cloud Native**: Designed for AWS Deployment (EC2, RDS, S3)
+- **Cost Efficient**: Optimized for AWS Free Tier ($0/month)
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────────┐
-│  React Frontend │
-└────────┬────────┘
-         │
-┌────────▼────────┐
-│  API Gateway    │ (Node.js/Express)
-│  (Port 8080)    │
-└────────┬────────┘
-         │
-    ┌────┴────┬──────────┬──────────┐
-    │         │          │          │
-┌───▼───┐ ┌──▼──┐ ┌─────▼────┐ ┌──▼──┐
-│ Auth  │ │Order│ │Strategy  │ │Port-│
-│Service│ │Exec │ │Service   │ │folio│
-└───┬───┘ └──┬──┘ └─────┬────┘ └──┬──┘
-    │        │           │          │
-    └────────┴───────────┴──────────┘
-                   │
-            ┌──────▼──────┐
-            │  RabbitMQ   │
-            └──────┬──────┘
-                   │
-         ┌─────────┴─────────┐
-    ┌────▼────┐         ┌────▼────┐
-    │PostgreSQL│         │  Redis  │
-    └─────────┘         └─────────┘
+┌─────────────────────────┐
+│     AWS Cloud / Local   │
+│                         │
+│  ┌───────────────────┐  │
+│  │ React Frontend    │  │ (S3 / Localhost:5173)
+│  └────────┬──────────┘  │
+│           │             │
+│  ┌────────▼──────────┐  │
+│  │ Backend API (EC2) │  │ (Localhost:8081, 8082)
+│  └────────┬──────────┘  │
+│           │             │
+│     ┌─────┴──────┐      │
+│     │            │      │
+│  ┌──▼───┐    ┌───▼───┐  │
+│  │ RDS  │    │ Redis │  │
+│  │ (PG) │    │Native │  │
+│  └──────┘    └───────┘  │
+└─────────────────────────┘
 ```
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Local Development)
 
 ### Prerequisites
 
-- Docker Desktop (or Docker + Docker Compose)
-- Java 17+ (for local development)
-- Node.js 18+ (for local development)
+- Java 21+ (Amazon Corretto recommended)
+- Node.js 18+
 - Maven 3.8+
+- PostgreSQL 15+ (Running locally)
+- Redis 6+ (Running locally)
 
-### Start All Services
-
+### 1. Setup Infrastructure
+Ensure PostgreSQL and Redis are running.
 ```bash
-# Clone the repository
-git clone <your-repo-url>
-cd robinhood-strategies-clone
+# MacOS (Homebrew)
+brew install postgresql redis
+brew services start postgresql
+brew services start redis
 
-# Start all services
-docker-compose up -d
+# Initial DB Setup
+createdb robinhood
+```
 
-# Check service status
-docker-compose ps
+### 2. Start Backend Services
+```bash
+# Auth Service (Terminal 1)
+cd backend/services/auth-service
+mvn spring-boot:run
 
-# View logs
-docker-compose logs -f
+# User Profiling Service (Terminal 2)
+cd backend/services/user-profiling-service
+mvn spring-boot:run
+```
+
+### 3. Start Frontend
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
 ### Access the Application
+- **Frontend**: http://localhost:5173
+- **Auth API**: http://localhost:8081
+- **Profiling API**: http://localhost:8082
 
-- **Frontend Dashboard**: http://localhost:3000
-- **API Gateway**: http://localhost:8080
-- **RabbitMQ Management**: http://localhost:15672 (guest/guest)
-- **Grafana Dashboards**: http://localhost:3001 (admin/admin)
-- **Prometheus**: http://localhost:9090
+---
+
+## ☁️ AWS Deployment
+
+The project is configured for automated deployment to AWS Free Tier.
+
+### Components
+- **Frontend**: Hosted on S3 (Static Website)
+- **Backend**: EC2 Instance (t2.micro / t3.micro) running Java JARs
+- **Database**: RDS PostgreSQL (db.t3.micro)
+- **Cache**: Native Redis on EC2
+
+### Scripts
+- `infrastructure/aws/ec2-setup.sh`: Provisions the EC2 instance with Java, Maven, Redis.
+- `infrastructure/aws/deploy.sh`: Builds and deploys backend services, supports connection to RDS.
+- `infrastructure/aws/deploy-frontend.sh`: Builds and syncs frontend to S3.
+
+### Manual Deployment
+```bash
+# Connect to EC2
+ssh -i key.pem ec2-user@<IP>
+
+# Pull latest code
+cd tradewise
+git pull
+
+# Run deployment script
+./infrastructure/aws/deploy.sh
+```
+
+---
 
 ## 📦 Services
 
@@ -84,138 +119,43 @@ docker-compose logs -f
 
 | Service | Port | Description |
 |---------|------|-------------|
-| Auth Service | 8081 | OAuth 2.0 authentication, user management, RBAC |
-| Order Execution Service | 8082 | Order placement, execution, lifecycle management |
-| Strategy Service | 8083 | Strategy evaluation, backtesting, recommendations |
-| Portfolio Service | 8084 | Portfolio tracking, rebalancing, performance analytics |
+| Auth Service | 8081 | OAuth 2.0 authentication, user management |
+| User Profiling Service | 8082 | Risk assessment, investment profiling |
+| Strategy Service | 8083 | Strategy evaluation (Coming Soon) |
 
-### API Gateway (Node.js/Express)
-
-| Port | Description |
-|------|-------------|
-| 8080 | Unified API endpoint, routing, rate limiting, JWT validation |
-
-### Frontend (React + TypeScript)
+### Frontend
 
 | Port | Description |
 |------|-------------|
-| 3000 | Investor dashboard, strategy marketplace, portfolio management |
+| 5173 | Investor dashboard, strategy marketplace |
 
-### Infrastructure Services
-
-| Service | Port | Description |
-|---------|------|-------------|
-| PostgreSQL | 5432 | Primary database for all services |
-| Redis | 6379 | Caching layer for performance optimization |
-| RabbitMQ | 5672, 15672 | Message broker + management UI |
-| Prometheus | 9090 | Metrics collection |
-| Grafana | 3001 | Metrics visualization |
+---
 
 ## 🔧 Development
 
-### Build Individual Services
-
+### Build Services
 ```bash
-# Java services
-cd backend/services/order-execution-service
-./mvnw clean package
-./mvnw spring-boot:run
-
-# API Gateway
-cd backend/services/api-gateway
-npm install
-npm run dev
+# Backend
+mvn clean package -DskipTests
 
 # Frontend
-cd frontend/investor-dashboard
-npm install
-npm start
+cd frontend
+npm run build
 ```
 
 ### Run Tests
-
 ```bash
-# Java services
-./mvnw test
-
-# Node.js services
-npm test
+# Backend
+mvn test
 
 # Frontend
 npm test
 ```
-
-## 📊 Key Features
-
-### Authentication & Authorization
-- OAuth 2.0 authorization server
-- JWT token-based authentication
-- Role-Based Access Control (Admin, Trader, Viewer)
-- Secure password hashing with BCrypt
-
-### Order Management
-- Market, limit, and stop orders
-- Real-time order execution simulation
-- Order history and tracking
-- Event-driven order lifecycle
-
-### Investment Strategies
-- Pre-built strategy templates
-- Custom strategy creation
-- Backtesting engine
-- Performance analytics
-- AI-powered recommendations
-
-### Portfolio Management
-- Real-time portfolio tracking
-- Automatic rebalancing
-- Risk assessment
-- Performance metrics (ROI, Sharpe ratio, volatility)
-- Holdings visualization
-
-### Event-Driven Architecture
-- RabbitMQ message broker
-- Asynchronous service communication
-- Event sourcing patterns
-- Reliable message delivery
-
-### Monitoring & Observability
-- Prometheus metrics collection
-- Grafana dashboards
-- Service health checks
-- Custom business metrics
-- Log aggregation
-
-## 🔐 Security
-
-- OAuth 2.0 + JWT authentication
-- Role-Based Access Control (RBAC)
-- API rate limiting
-- CORS configuration
-- SQL injection prevention
-- XSS protection
-
-## 📈 Performance Optimizations
-
-- Redis caching for frequently accessed data
-- Database query optimization with indexes
-- Connection pooling
-- Lazy loading in frontend
-- Code splitting
-- Docker multi-stage builds
-
-## 🧪 Testing
-
-- Unit tests with JUnit 5 (Java)
-- Integration tests with TestContainers
-- API tests with REST Assured
-- Frontend tests with Jest + React Testing Library
-- E2E tests with Cypress
 
 ## 📚 Technology Stack
 
 **Backend:**
-- Java 17, Spring Boot 3.x
+- Java 21, Spring Boot 3.x
 - Spring Data JPA, Spring Security
 - PostgreSQL, Redis
 - RabbitMQ
@@ -224,84 +164,18 @@ npm test
 **Frontend:**
 - React 18, TypeScript
 - Material-UI (MUI) v5
-- React Query, Axios
-- Recharts
-
-**API Gateway:**
-- Node.js 18, Express
-- JWT validation
-- Rate limiting
+- Vite
+- Axios
 
 **Infrastructure:**
-- Docker, Docker Compose
-- Prometheus, Grafana
-- GitHub Actions
-
-## 🗂️ Project Structure
-
-```
-robinhood-strategies-clone/
-├── backend/
-│   ├── services/
-│   │   ├── order-execution-service/
-│   │   ├── strategy-service/
-│   │   ├── portfolio-service/
-│   │   ├── auth-service/
-│   │   └── api-gateway/
-│   ├── shared/
-│   │   └── common-models/
-│   └── rabbitmq/
-│       └── event-schemas/
-├── frontend/
-│   └── investor-dashboard/
-├── infrastructure/
-│   ├── docker/
-│   ├── docker-compose.yml
-│   └── monitoring/
-├── ci-cd/
-│   └── .github/workflows/
-├── docs/
-│   └── architecture/
-└── scripts/
-    ├── setup/
-    └── seed-data/
-```
-
-## 🎓 Learning Outcomes
-
-This project demonstrates:
-
-1. **Microservices Architecture** - Service decomposition, inter-service communication
-2. **Event-Driven Systems** - RabbitMQ messaging patterns
-3. **API Design** - RESTful and GraphQL APIs
-4. **Security** - OAuth 2.0, JWT, RBAC
-5. **Frontend Development** - Modern React with TypeScript
-6. **Performance Optimization** - Caching, query optimization
-7. **Containerization** - Docker, Docker Compose
-8. **DevOps** - CI/CD, monitoring, logging
-9. **Database Design** - Schema design, relationships
-10. **Message Brokers** - RabbitMQ exchanges and queues
-
-## 🚀 Deployment
-
-While this project runs locally, the architecture is cloud-ready and can be deployed to:
-
-- **AWS**: ECS, RDS, ElastiCache, Amazon MQ
-- **Google Cloud**: GKE, Cloud SQL, Memorystore, Pub/Sub
-- **Azure**: AKS, Azure Database, Azure Cache, Service Bus
-
-## 📝 License
-
-MIT License - feel free to use this project for learning and portfolio purposes.
-
-## 🤝 Contributing
-
-This is a learning project, but contributions are welcome! Please feel free to submit issues and pull requests.
-
-## 📧 Contact
-
-Built as a comprehensive learning project to understand modern full-stack development practices.
+- AWS (EC2, RDS, S3)
+- GitHub Actions (CI/CD)
+- Shell Scripting
 
 ---
 
-**Note**: This is a mock trading platform for educational purposes only. It does not connect to real brokerage accounts or execute real trades.
+## 📝 License
+MIT License
+
+## 📧 Contact
+Built as a comprehensive learning project to understand modern full-stack development and cloud deployment.
