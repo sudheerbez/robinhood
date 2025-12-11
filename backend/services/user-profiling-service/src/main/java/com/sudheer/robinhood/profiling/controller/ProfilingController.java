@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/v1/profiling")
 @RequiredArgsConstructor
-@CrossOrigin(origins = { "http://localhost:5173", "http://localhost:3000" })
+@CrossOrigin(origins = "*")
 public class ProfilingController {
 
     private final ProfilingService profilingService;
