@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Box,
@@ -22,25 +22,44 @@ import {
     Logout,
 } from '@mui/icons-material';
 
+interface User {
+    userId: number;
+    username: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+}
+
+interface Assessment {
+    age: number;
+    investmentAmount: number;
+    investmentGoal: string;
+    timeHorizonYears: number;
+}
+
+interface Profile {
+    riskScore: number;
+    riskTolerance: string;
+    recommendedStrategy: string;
+    assessment: Assessment;
+}
+
+function getInitialState(): { user: User | null; profile: Profile | null } {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+        const parsedUser = JSON.parse(userData) as User;
+        const profileData = localStorage.getItem(`profile_${parsedUser.userId}`);
+        return {
+            user: parsedUser,
+            profile: profileData ? (JSON.parse(profileData) as Profile) : null,
+        };
+    }
+    return { user: null, profile: null };
+}
+
 export default function Profile() {
     const navigate = useNavigate();
-    const [user, setUser] = useState<any>(null);
-    const [profile, setProfile] = useState<any>(null);
-
-    useEffect(() => {
-        const userData = localStorage.getItem('user');
-        if (userData) {
-            const parsedUser = JSON.parse(userData);
-            setUser(parsedUser);
-
-            const profileData = localStorage.getItem(`profile_${parsedUser.userId}`);
-            if (profileData) {
-                setProfile(JSON.parse(profileData));
-            }
-        } else {
-            navigate('/login');
-        }
-    }, [navigate]);
+    const [{ user, profile }] = useState(getInitialState);
 
     const handleLogout = () => {
         localStorage.removeItem('user');

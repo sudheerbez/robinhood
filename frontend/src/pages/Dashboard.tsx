@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Box,
@@ -49,16 +49,25 @@ const activeStrategies = [
     { name: 'Conservative Income', allocation: 15, return: '+5.8%', color: '#8B5CF6' },
 ];
 
+interface User {
+    userId: number;
+    username: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+}
+
+function getInitialUser(): User | null {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+        return JSON.parse(userData) as User;
+    }
+    return null;
+}
+
 export default function Dashboard() {
     const navigate = useNavigate();
-    const [user, setUser] = useState<any>(null);
-
-    useEffect(() => {
-        const userData = localStorage.getItem('user');
-        if (userData) {
-            setUser(JSON.parse(userData));
-        }
-    }, []);
+    const [user] = useState<User | null>(getInitialUser);
 
     const handleLogout = () => {
         localStorage.removeItem('user');

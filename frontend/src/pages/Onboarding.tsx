@@ -78,8 +78,9 @@ export default function Onboarding() {
                 }
 
                 setActiveStep(activeStep + 1);
-            } catch (err: any) {
-                setError(err.response?.data?.detail || 'Assessment failed. Please try again.');
+            } catch (err: unknown) {
+                const error = err as { response?: { data?: { detail?: string } } };
+                setError(error.response?.data?.detail || 'Assessment failed. Please try again.');
             }
         } else if (activeStep === steps.length - 1) {
             navigate('/dashboard');

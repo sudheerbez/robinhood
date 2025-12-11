@@ -51,8 +51,9 @@ export default function Login({ onLogin }: LoginProps) {
             } else {
                 setTimeout(() => navigate('/dashboard'), 1000);
             }
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Login failed');
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
+            setError(error.response?.data?.message || 'Login failed');
         }
     };
 
@@ -65,8 +66,9 @@ export default function Login({ onLogin }: LoginProps) {
             setSuccess('Registration successful! Let\'s set up your investment profile.');
             onLogin();
             setTimeout(() => navigate('/onboarding'), 1500);
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Registration failed');
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
+            setError(error.response?.data?.message || 'Registration failed');
         }
     };
 
