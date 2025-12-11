@@ -40,7 +40,7 @@ public class AuthService {
                                 .isActive(true)
                                 .build();
 
-                User savedUser = userRepository.save(user);
+                User savedUser = userRepository.save(Objects.requireNonNull(user));
                 log.info("User registered: {}", savedUser.getUsername());
 
                 return AuthResponse.builder()
