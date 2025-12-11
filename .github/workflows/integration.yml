@@ -38,14 +38,11 @@ jobs:
           java-version: '21'
           cache: 'maven'
 
-      - name: Make mvnw executable
-        run: chmod +x mvnw
-
       - name: Build ${{ matrix.service }}
-        run: ./mvnw clean package -DskipTests -q
+        run: mvn clean package -DskipTests -q
 
       - name: Test ${{ matrix.service }}
-        run: ./mvnw test -q
+        run: mvn test -q
         continue-on-error: true
 
   # =====================================
@@ -98,7 +95,6 @@ jobs:
           for service in auth-service user-profiling-service strategy-service; do
             dir="backend/services/$service"
             [ -f "$dir/pom.xml" ] && echo "✅ $service/pom.xml" || echo "⚠️ $service/pom.xml missing"
-            [ -f "$dir/mvnw" ] && echo "✅ $service/mvnw" || echo "⚠️ $service/mvnw missing"
           done
           
           # Check frontend
